@@ -5,13 +5,16 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 }).addTo(map);
 
 function addShopMarker(lat, lon, text) {
-  let direction = 0;
   const dirs = ['up', 'right', 'down', 'left'];
+
+  // Загружаем направление из localStorage, если есть
+  const savedDirection = localStorage.getItem(`marker-dir-${text}`);
+  let direction = savedDirection ? parseInt(savedDirection) : 0;
+
   let marker = createMarker(lat, lon, text, direction);
   marker.addTo(map);
 
   function createMarker(lat, lon, text, dirIndex) {
-    // Создаём обёртку и содержимое
     const wrapper = document.createElement('div');
     wrapper.className = `shop-marker marker-${dirs[dirIndex]}`;
 
@@ -22,54 +25,54 @@ function addShopMarker(lat, lon, text) {
     const triangle = document.createElement('div');
     triangle.className = 'triangle';
 
-    // Управляемый порядок
+    // Порядок элементов
     if (dirs[dirIndex] === 'left') {
-      wrapper.append(triangle, label); // стрелка слева
+      wrapper.append(triangle, label);
     } else if (dirs[dirIndex] === 'right') {
-      wrapper.append(label, triangle); // стрелка справа
+      wrapper.append(label, triangle);
     } else {
-      wrapper.append(label, triangle); // верх/низ — стандартно
+      wrapper.append(label, triangle);
     }
 
-
-    // Слушаем ПКМ
+    // Слушаем ПКМ — меняем направление и сохраняем
     wrapper.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       map.removeLayer(marker);
       direction = (direction + 1) % 4;
+
+      // Сохраняем новое значение
+      localStorage.setItem(`marker-dir-${text}`, direction);
+
       marker = createMarker(lat, lon, text, direction);
       marker.addTo(map);
     });
 
-    // Временно добавляем в DOM, чтобы измерить размер
+    // Вычисляем размеры
     wrapper.style.position = 'absolute';
     wrapper.style.visibility = 'hidden';
     document.body.appendChild(wrapper);
     const { width, height } = wrapper.getBoundingClientRect();
     document.body.removeChild(wrapper);
-    wrapper.style.position = '';
-    wrapper.style.visibility = '';
 
-    // Вычисляем iconAnchor в зависимости от направления
     const anchorMap = {
-      up:    [ width / 2, height ],
-      down:  [ width / 2, 0      ],
-      right: [ 0,           height / 2 ],
-      left:  [ width,       height / 2 ],
+      up:    [width / 2, height],
+      down:  [width / 2, 0],
+      right: [0, height / 2],
+      left:  [width, height / 2],
     };
     const anchor = anchorMap[dirs[dirIndex]];
 
-    // Создаём DivIcon
     const icon = L.divIcon({
       html: wrapper,
       className: '',
-      iconSize: [ width, height ],
+      iconSize: [width, height],
       iconAnchor: anchor
     });
 
     return L.marker([lat, lon], { icon });
   }
 }
+
 
 // Все магазины
 addShopMarker(42.915532, 74.590593, 'Улан');
