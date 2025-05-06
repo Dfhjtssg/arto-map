@@ -1,4 +1,12 @@
-const map = L.map('map').setView([42.85228, 74.473453], 14);
+const map = L.map('map', {
+  zoomControl: false
+}).setView([42.85228, 74.473453], 14); // пример
+
+L.control.zoom({
+  position: 'topright'
+}).addTo(map);
+
+
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '&copy; OpenStreetMap участники',
