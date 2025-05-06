@@ -72,3 +72,8 @@ html, body {
   border-right: none;
   border-left: 12px solid #2196f3; /* Стрелка налево ✅ */
 }
+
+.leaflet-control-attribution {
+  display: none !important;
+}
+
