@@ -1,6 +1,6 @@
 const map = L.map('map', {
   zoomControl: false
-}).setView([42.856377, 74.499704], 14); // пример
+}).setView([42.856377, 74.499704], 15); // пример
 
 L.control.zoom({
   position: 'topright'
