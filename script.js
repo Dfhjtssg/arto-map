@@ -1,21 +1,37 @@
 const map = L.map('map', {
   zoomControl: false
-}).setView([42.832991, 74.604317], 14); // пример
+}).setView([42.832991, 74.604317], 14); // стартовый центр
 
 L.control.zoom({
   position: 'topright'
 }).addTo(map);
 
-
-
 L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1', {
   attribution: '&copy; OpenStreetMap участники',
 }).addTo(map);
 
+// 👉 функция: центр по меткам
+function getCenterOfMarkers(markers) {
+  if (!markers.length) return null;
+
+  let sumLat = 0;
+  let sumLon = 0;
+
+  for (const [lat, lon] of markers) {
+    sumLat += lat;
+    sumLon += lon;
+  }
+
+  const centerLat = sumLat / markers.length;
+  const centerLon = sumLon / markers.length;
+
+  return [centerLat, centerLon];
+}
+
 function addShopMarker(lat, lon, text, initialDirection = 'up') {
   const dirs = ['up', 'right', 'down', 'left'];
   let directionIndex = dirs.indexOf(initialDirection);
-  if (directionIndex === -1) directionIndex = 0; // если указано неправильно
+  if (directionIndex === -1) directionIndex = 0;
 
   let marker = createMarker(lat, lon, text, dirs[directionIndex]);
   marker.addTo(map);
@@ -33,13 +49,10 @@ function addShopMarker(lat, lon, text, initialDirection = 'up') {
 
     if (direction === 'left') {
       wrapper.append(triangle, label);
-    } else if (direction === 'right') {
-      wrapper.append(label, triangle);
     } else {
       wrapper.append(label, triangle);
     }
 
-    // ПКМ — смена направления
     wrapper.addEventListener('contextmenu', (e) => {
       e.preventDefault();
       map.removeLayer(marker);
@@ -48,7 +61,6 @@ function addShopMarker(lat, lon, text, initialDirection = 'up') {
       marker.addTo(map);
     });
 
-    // измерить размер
     wrapper.style.position = 'absolute';
     wrapper.style.visibility = 'hidden';
     document.body.appendChild(wrapper);
@@ -81,6 +93,7 @@ const m = new URLSearchParams(window.location.search).get('m');
 if (m) {
   try {
     const entries = m.split(';');
+    const coords = []; // для вычисления центра
 
     for (const entry of entries) {
       const parts = entry.split(',');
@@ -89,33 +102,22 @@ if (m) {
 
       const lat = parseFloat(parts[0]);
       const lon = parseFloat(parts[1]);
-      const side = parts.pop(); // последним — сторона
-      const text = decodeURIComponent(parts.slice(2).join(',')); // всё между координатами и стороной — это текст
+      const side = parts.pop();
+      const text = decodeURIComponent(parts.slice(2).join(','));
 
       if (!isNaN(lat) && !isNaN(lon) && side) {
         addShopMarker(lat, lon, text, side);
+        coords.push([lat, lon]); // добавляем координаты
       }
     }
+
+    // 👉 центрируем карту на общий центр всех меток
+    const center = getCenterOfMarkers(coords);
+    if (center) {
+      map.setView(center, 15); // можешь изменить зум
+    }
+
   } catch (e) {
     console.error('Ошибка разбора параметра m:', e);
   }
 }
-
-
-// Все магазины
-//addShopMarker(42.915532, 74.590593, 'Улан');
-//addShopMarker(42.916844, 74.590007, 'Бермет');
-//addShopMarker(42.932802, 74.597648, 'Мадина');
-//addShopMarker(42.932875, 74.601755, 'Данек');
-//addShopMarker(42.935660, 74.602599, 'Эки-Таксыр', 'right');
-//addShopMarker(42.936371, 74.602587, 'Бакыт', 'right');
-//addShopMarker(42.936658, 74.602665, 'Малика', 'right');
-//addShopMarker(42.938149, 74.602337, 'Изобилие', 'right');
-//addShopMarker(42.926627, 74.602338, 'Бекмырза');
-//addShopMarker(42.926394, 74.601607, 'Алия', 'left');
-//addShopMarker(42.923612, 74.601835, 'Бегимай');
-//addShopMarker(42.919181, 74.600906, 'Аман Эсен', 'left');
-//addShopMarker(42.917486, 74.601318, 'Кок Бел', 'right');
-//addShopMarker(42.917465, 74.600922, 'Лимон', 'left');
-//addShopMarker(42.924070, 74.608577, 'Бекзат');
-//addShopMarker(42.929405, 74.602156, 'Шекер');
