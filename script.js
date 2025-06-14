@@ -8,7 +8,7 @@ L.control.zoom({
 
 
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1', {
   attribution: '&copy; OpenStreetMap участники',
 }).addTo(map);
 
